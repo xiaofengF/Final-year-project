@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
 import string
 from itertools import groupby
@@ -23,28 +24,81 @@ class Parser(object):
     def get_keywords(self, text):
         sentence = nltk.tokenize.sent_tokenize(text)
         for s in sentence:
-            phrase_list = self._generate_phrases(s)
-
+            parameter = self._generate_phrases(s)
+            if type(parameter)==list:
+                phrase_list = parameter[1]
+                entity = parameter[0]
+            else:
+                phrase_list = parameter
         keywords = []
         for phrase in phrase_list:
             keywords.append(' '.join(phrase))
+        keywords = [entity if x == 'entity' else x for x in keywords]
 
         return keywords
 
+    def find_entity(self, sentence):
+        # identify the entity in a sentence
+        db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
+        cursor = db.cursor()
+        cursor.execute("SELECT title FROM Restaurants_data GROUP BY title")
+        results = cursor.fetchall()
+        db.close()
+        title_list = []
+        potential_entities = []
+        # Delete ambiguous word
+        sentence = sentence.replace('the','')
+        # Find potential entities
+        for result in results:
+            title = result[0].lower()
+            title_list.append(title)
+
+        for t in title_list:
+            if sentence.lower().find(t) != -1:
+                potential_entities.append(t)  
+
+        # Delete wrong entities
+        potential_entities = [x for x in potential_entities if not (sentence[sentence.lower().find(x) - 1].isalpha() or sentence[sentence.lower().find(x) + len(x)].isalpha())]
+        return potential_entities
+
+    # change format
+    def change_format(self, text):
+        if text.find("I'm") != -1:
+            sentence = nltk.tokenize.sent_tokenize(text.replace("I'm", "I am"))
+        elif text.find("What's") != -1:
+            sentence = nltk.tokenize.sent_tokenize(text.replace("What's", "What is"))
+        elif text.find("Where's") != -1:
+            sentence = nltk.tokenize.sent_tokenize(text.replace("Where's", "Where is"))
+        else:
+            sentence = nltk.tokenize.sent_tokenize(text)
+        return sentence
+
     def _generate_phrases(self, sentence):
         phrase_list = set()
-        word_list = [word.lower() for word in wordpunct_tokenize(sentence)]
+        potential_entities = self.find_entity(sentence)
+        
+        sentence = self.change_format(sentence)
+        for s in sentence:
+            word_list = [word.lower() for word in wordpunct_tokenize(s)]
 
-        print word_list
+        # The longest one will be identified to a entity
+        if potential_entities:
+            entity = max(potential_entities, key = len)
+            s = sentence.lower().replace(entity, 'entity')
+            word_list = wordpunct_tokenize(s)
         tagged = pos_tag(word_list)
-
         # Delete verb in the query
         for w, t in zip(word_list,tagged):
-            if t[1] == 'VB' or t[0] == 'list':
+            if t[1] in ['VB', 'VBG', 'VBD','VBN','VBP','VBZ'] or t[0] == 'list':
                 word_list.remove(w)
 
         phrase_list.update(self.get_phrases(word_list))
-        return phrase_list
+
+        if 'entity' in dir():
+            parameter = [entity, phrase_list]
+            return parameter
+        else:
+            return phrase_list
    
     def get_phrases(self, word_list):
         phrase_list = []
@@ -54,36 +108,16 @@ class Parser(object):
                 tagged = pos_tag(l)
                 # seperate adjective words
                 for w, t in zip(l, tagged):
-                    print w, ':', t[1]
-                    if t[1] in ['JJ','JJR','JJS','RBS','RB', 'RBR'] or  not(t[0].find('ese') == -1):
+                    if t[1] in ['JJ','JJR','JJS','RBS','RB','RBR'] or  not (t[0].find('ese') == -1):
                         l.remove(w)
                         adjective = (t[0], )
-                        print adjective
                         phrase_list.append(adjective)
                 if l != []:
                     phrase_list.append(tuple(l))
         return phrase_list
 
-    def define_question_type(self, text):
-        # Jaccard Coefficient mechanism
-        sentence = nltk.tokenize.sent_tokenize(text)
-        for s in sentence:
-            query_list = [word.lower() for word in wordpunct_tokenize(s)]
-            query_length = len(query_list)
-
-        answers = []
-        db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM question_type")
-        results = cursor.fetchall()
-        for row in results:
-            r = {
-            'target':row[0],
-            'answerType':row[1],
-            'queryTerms':row[2]
-            }
-            answers.append(r)
-
+    def calculate_probability(self, answers, query_length, query_list):
+        # Calculate
         probability_set = []
         for answer in answers:
             answer_list = answer['queryTerms']
@@ -98,6 +132,7 @@ class Parser(object):
 
             probability = interact/union
             tup = (answer['target'], answer['queryTerms'], probability)
+            print tup
             probability_set.append(tup)
 
         max_probability = 0
@@ -107,4 +142,41 @@ class Parser(object):
                 question_type = p[0]
         print(max_probability)
         print(question_type)
+
+
+    def define_question_type(self, text):
+        # Jaccard Coefficient mechanism
+        potential_entities = self.find_entity(text)
+        # format
+        sentence = self.change_format(text)
+        print sentence
+
+        if potential_entities:
+            entity = max(potential_entities, key = len)
+            s = text.lower().replace(entity, 'entity')
+            sentence = nltk.tokenize.sent_tokenize(s)
+
+        for s in sentence:
+            query_list = [word.lower() for word in wordpunct_tokenize(s)]
+            query_length = len(query_list)
+
+        print query_list
+        answers = []
+        # Get data
+        db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM question_type")
+        results = cursor.fetchall()
         db.close()
+
+        for row in results:
+            r = {
+            'target':row[0],
+            'answerType':row[1],
+            'queryTerms':row[2]
+            }
+            answers.append(r)
+
+        self.calculate_probability(answers, query_length, query_list)
+
+
