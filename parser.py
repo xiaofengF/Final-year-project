@@ -20,6 +20,74 @@ class Parser(object):
 
         self.to_ignore = set(self.stopwords + self.punctuations)
 
+    def get_sql(self, query):
+        question_type = self.define_question_type(query)
+        keywords = self.get_keywords(query)
+        sql = ""
+        if question_type == "1":
+            sql = "SELECT * FROM Restaurants_data WHERE "
+            include_rate = 0
+
+            for keyword in keywords:
+                if keyword[1] == 'badrate':
+                    sql += "rate = (SELECT max(rate) FROM Restaurants_data WHERE "
+                    include_rate = 1
+                elif keyword[1] == 'goodrate':
+                    sql += "rate = (SELECT min(rate) FROM Restaurants_data WHERE "
+                    include_rate = 1
+
+            sql = self.sql2(keywords, sql)
+            if include_rate == 1:
+                sql += ")"
+        elif question_type == "2":
+            sql = "SELECT * FROM Restaurants_data WHERE "
+            sql = self.sql2(keywords, sql)
+            if sql[-6:-1] == "WHERE":
+                sql = sql[:-7]
+
+            for keyword in keywords:
+                if keywords[1] == 'badrate':
+                    sql += " ORDER BY rate desc"
+                elif keyword[1] == 'goodrate':
+                    sql += " ORDER BY rate"
+        elif question_type == "3":
+            sql = "SELECT location FROM Restaurants_data WHERE " 
+            sql = self.sql2(keywords, sql)
+            sql += " GROUP BY location"
+
+        return sql
+
+    def sql(self, keyword, sql):
+        sql = "'"
+        sql += keyword[0]
+        sql += "'"
+        return sql
+
+    def sql2(self, keywords, sql):
+        limit = 0
+        for keyword in keywords:
+            if limit != 0:
+                sql += " AND "
+            if keyword[1] == 'title':
+                sql += "title like "
+                sql += self.sql(keyword, sql)
+                limit += 1
+            elif keyword[1] == 'price':
+                sql += "price like "
+                sql += self.sql(keyword, sql)
+                limit += 1
+            elif keyword[1] == 'feature':
+                sql += "feature like "
+                sql += self.sql(keyword, sql)
+                limit += 1
+            elif keyword[1] == 'postleft':
+                sql += "postLeft like "
+                sql += self.sql(keyword, sql)
+                limit += 1
+
+            if sql[-4:-1] == "AND":
+                sql = sql[:-5]
+        return sql
 
     def get_keywords(self, text):
         sentence = nltk.tokenize.sent_tokenize(text)
@@ -33,9 +101,49 @@ class Parser(object):
         keywords = []
         for phrase in phrase_list:
             keywords.append(' '.join(phrase))
-        keywords = [entity if x == 'entity' else x for x in keywords]
 
-        return keywords
+        tup = []
+        features = [word.lower() for word in ['Afghani','African','Albanian','American','Arabic','Argentinean','Armenian','Asian','Australian','Austrian','Balti','Bangladeshi','Bar','Barbecue','Belgian','Brazilian','Brew Pub','British','Burmese','Cafe','Cajun & Creole','Cambodian','Canadian','Caribbean','Central American','Central Asian','Central European','Chilean','Chinese','Colombian','Contemporary','Croatian','Cuban','Czech','Danish','Delicatessen','Diner','Dutch','Eastern European','Ecuadorean','Egyptian','Ethiopian','European','Fast Food','Filipino','French','Fusion','Gastropub','Georgian','German','Gluten Free Options','Greek','Grill','Halal','Hawaiian','Healthy','Hungarian','Indian','Indonesian','International','Irish','Israeli','Italian','Jamaican','Japanese','Korean','Kosher','Latin','Latvian','Lebanese','Malaysian','Mediterranean','Mexican','Middle Eastern','Minority Chinese','Moroccan','Nepali','New Zealand','Norwegian','Pakistani','Persian','Peruvian','Pizza','Polish','Polynesian','Portuguese','Pub','Romanian','Russian','Salvadoran','Scandinavian','Scottish','Seafood','Singaporean','Soups','South American','Southwestern','Spanish','Sri Lankan','Steakhouse','Street Food','Sushi','Swedish','Swiss','Taiwanese','Thai','Tibetan','Tunisian','Turkish','Ukrainian','Uzbek','Vegan Options','Vegetarian Friendly','Venezuelan','Vietnamese','Welsh','Wine Bar']]
+
+        for keyword in keywords:
+        # price
+            if keyword in ['expensive']:
+                keyword = ('$$$$', 'price')
+            elif keyword in ['cheap', 'inexpensive']:
+                keyword = ('$', 'price')
+        # feature
+            elif keyword in features:
+                keyword = (keyword, 'feature')
+        # rate
+            elif keyword in ['good', 'popular', 'well-known', 'best']:
+                keyword = (keyword, 'goodrate')
+            elif keyword in ['bad','worst']:
+                keyword = (keyword, 'badrate')
+        # postLeft
+            elif self.find_postcode(keyword):
+                keyword = (keyword, 'postleft')
+        # title
+            elif keyword == 'entity':
+                keyword = (entity, 'title')
+            else:
+                keyword = (keyword, 'unknown')
+            tup.append(keyword)
+
+        return tup
+
+    def find_postcode(self, keyword):
+        # Get postcode
+        db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
+        cursor = db.cursor()
+        cursor.execute("SELECT postLeft FROM Restaurants_data GROUP BY postLeft")
+        results = cursor.fetchall()
+        db.close()
+
+        for result in results:
+            post = result[0].lower()
+            if keyword == post:
+                return 1
+        return 0
 
     def find_entity(self, sentence):
         # identify the entity in a sentence
@@ -84,8 +192,9 @@ class Parser(object):
         # The longest one will be identified to a entity
         if potential_entities:
             entity = max(potential_entities, key = len)
-            s = sentence.lower().replace(entity, 'entity')
-            word_list = wordpunct_tokenize(s)
+            for s in sentence:
+                s = s.lower().replace(entity, 'entity')
+                word_list = wordpunct_tokenize(s)
         tagged = pos_tag(word_list)
         # Delete verb in the query
         for w, t in zip(word_list,tagged):
@@ -132,7 +241,7 @@ class Parser(object):
 
             probability = interact/union
             tup = (answer['target'], answer['queryTerms'], probability)
-            print tup
+            # print tup
             probability_set.append(tup)
 
         max_probability = 0
@@ -140,8 +249,7 @@ class Parser(object):
             if p[2] > max_probability:
                 max_probability = p[2]
                 question_type = p[0]
-        print(max_probability)
-        print(question_type)
+        return question_type
 
 
     def define_question_type(self, text):
@@ -149,7 +257,7 @@ class Parser(object):
         potential_entities = self.find_entity(text)
         # format
         sentence = self.change_format(text)
-        print sentence
+        # print sentence
 
         if potential_entities:
             entity = max(potential_entities, key = len)
@@ -160,7 +268,7 @@ class Parser(object):
             query_list = [word.lower() for word in wordpunct_tokenize(s)]
             query_length = len(query_list)
 
-        print query_list
+        # print query_list
         answers = []
         # Get data
         db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
@@ -177,6 +285,6 @@ class Parser(object):
             }
             answers.append(r)
 
-        self.calculate_probability(answers, query_length, query_list)
+        return self.calculate_probability(answers, query_length, query_list)
 
 

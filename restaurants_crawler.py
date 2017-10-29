@@ -19,10 +19,9 @@ def dictValuePad(key):
     return '%(' + str(key) + ')s'
 
 #Restaurants pages
-for i in range(0, 605):
+for i in range(517, 605):
 	var = str(30 * i)
 	urls.append('https://www.tripadvisor.com/RestaurantSearch-g186338-oa' + var + '-London_England.html%23EATERY_LIST_CONTENTS')
-print("url done")
 
 #Connect to the database
 db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
@@ -31,6 +30,8 @@ db.set_character_set('utf8')
 cursor.execute('SET NAMES utf8;')
 cursor.execute('SET CHARACTER SET utf8;')
 cursor.execute('SET character_set_connection=utf8;')
+
+progress = 0
 
 for url in urls:
 	data = requests.get(url)
@@ -62,24 +63,35 @@ for url in urls:
 			locations.append(l)
 			phones.append(ph.get_text())
 
+	print "hello111"
+
 	for title,rate,feature,lo,p,x,y in zip(titles,rates,features,locations,phones,postLeft,postRight):
 		#Data processing
 		#Delete \n in the text
+
 		t = title.get_text()[1:-1]
 		r = rate.get_text()[1:-1]
 		#Get the rank number from the text
 		ra = r[1:r.find(' ')]
+		if ra.find(",") != -1:
+			ra = ra.replace(",","")
+
 		#divide features
 		f = feature.get_text()[1:-1]
-		fe = f[f.find('\n') + 1:]
-		feature_list = fe.split('\n')
-		price = f[:f.find('\n')]
+		# Some restaurants dont have price
+		if f.find('$') != -1:
+			price = f[:f.find('\n')]
+			fe = f[f.find('\n') + 1:]
+			feature_list = fe.split('\n')
+		else:
+			price = ""
+			feature_list = f.split('\n')
 
 		#Store data
 		for fea in feature_list:
 			restaurant = {
 				'title':t,
-				'rate':ra,
+				'rate':int(ra),
 				'feature':fea,
 				'location':lo,
 				'phone':p,
@@ -87,10 +99,14 @@ for url in urls:
 				'postLeft':x,
 				'postRight':y
 			}
+			# print restaurant
 			# insert data into database
+
 			sql = insertFromDict("Restaurants_data", restaurant)
 			cursor.execute(sql, restaurant)
 			db.commit()
+		progress += 1
+		print progress
 
 cursor.close()
 db.close()
