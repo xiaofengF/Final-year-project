@@ -4,6 +4,9 @@ import string
 from itertools import groupby
 import nltk
 from nltk.tokenize import wordpunct_tokenize
+from nltk.corpus import wordnet
+from PyDictionary import PyDictionary
+
 import MySQLdb
 from nltk import pos_tag
 
@@ -20,9 +23,19 @@ class Parser(object):
 
         self.to_ignore = set(self.stopwords + self.punctuations)
 
+    def get_data(self, query):
+        query = self.get_sql(query)
+        db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
+        cursor = db.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        print query
+        db.close()
+
     def get_sql(self, query):
-        question_type = self.define_question_type(query)
         keywords = self.get_keywords(query)
+        question_type = self.define_question_type(query, keywords)
+        print question_type
         sql = ""
         if question_type == "1":
             sql = "SELECT * FROM Restaurants_data WHERE "
@@ -47,14 +60,16 @@ class Parser(object):
 
             for keyword in keywords:
                 if keywords[1] == 'badrate':
-                    sql += " ORDER BY rate desc"
+                    sql += " ORDER BY rate DESC"
                 elif keyword[1] == 'goodrate':
                     sql += " ORDER BY rate"
         elif question_type == "3":
             sql = "SELECT location FROM Restaurants_data WHERE " 
             sql = self.sql2(keywords, sql)
             sql += " GROUP BY location"
-
+        elif question_type == "4":
+            sql = "SELECT * FROM Restaurants_data WHERE "
+            sql = self.sql2(keywords, sql)
         return sql
 
     def sql(self, keyword, sql):
@@ -105,19 +120,27 @@ class Parser(object):
         tup = []
         features = [word.lower() for word in ['Afghani','African','Albanian','American','Arabic','Argentinean','Armenian','Asian','Australian','Austrian','Balti','Bangladeshi','Bar','Barbecue','Belgian','Brazilian','Brew Pub','British','Burmese','Cafe','Cajun & Creole','Cambodian','Canadian','Caribbean','Central American','Central Asian','Central European','Chilean','Chinese','Colombian','Contemporary','Croatian','Cuban','Czech','Danish','Delicatessen','Diner','Dutch','Eastern European','Ecuadorean','Egyptian','Ethiopian','European','Fast Food','Filipino','French','Fusion','Gastropub','Georgian','German','Gluten Free Options','Greek','Grill','Halal','Hawaiian','Healthy','Hungarian','Indian','Indonesian','International','Irish','Israeli','Italian','Jamaican','Japanese','Korean','Kosher','Latin','Latvian','Lebanese','Malaysian','Mediterranean','Mexican','Middle Eastern','Minority Chinese','Moroccan','Nepali','New Zealand','Norwegian','Pakistani','Persian','Peruvian','Pizza','Polish','Polynesian','Portuguese','Pub','Romanian','Russian','Salvadoran','Scandinavian','Scottish','Seafood','Singaporean','Soups','South American','Southwestern','Spanish','Sri Lankan','Steakhouse','Street Food','Sushi','Swedish','Swiss','Taiwanese','Thai','Tibetan','Tunisian','Turkish','Ukrainian','Uzbek','Vegan Options','Vegetarian Friendly','Venezuelan','Vietnamese','Welsh','Wine Bar']]
 
+# synonyms  
+        dictionary = PyDictionary()
+        expensive = dictionary.synonym("expensive")
+        cheap = dictionary.synonym("cheap")
+        good = dictionary.synonym("good") + dictionary.synonym("popular") + dictionary.synonym("well-known") + dictionary.synonym("best") + dictionary.synonym("top")
+        bad = dictionary.synonym("bad") + dictionary.synonym("worse") + dictionary.synonym("worst")
+
         for keyword in keywords:
         # price
-            if keyword in ['expensive']:
-                keyword = ('$$$$', 'price')
-            elif keyword in ['cheap', 'inexpensive']:
-                keyword = ('$', 'price')
+            word = keyword
+            if keyword in expensive:
+                keyword = ('$$$$', 'price', word)
+            elif keyword in cheap:
+                keyword = ('$', 'price', word)
         # feature
             elif keyword in features:
                 keyword = (keyword, 'feature')
         # rate
-            elif keyword in ['good', 'popular', 'well-known', 'best']:
+            elif keyword in good:
                 keyword = (keyword, 'goodrate')
-            elif keyword in ['bad','worst']:
+            elif keyword in bad:
                 keyword = (keyword, 'badrate')
         # postLeft
             elif self.find_postcode(keyword):
@@ -127,8 +150,29 @@ class Parser(object):
                 keyword = (entity, 'title')
             else:
                 keyword = (keyword, 'unknown')
+            # double check
+            if keyword[1] == 'unknown':
+                synonym = []
+                synonym = dictionary.synonym(keyword[0])
+                if synonym != []:
+                    for c in cheap:
+                        for x in synonym:
+                            if c == x:
+                                keyword = ('$', 'price', word)
+                                break
+                    for e in expensive:
+                        for x in synonym:
+                            if e == x:
+                                keyword = ('$$$$', 'price', word)
+                    for g in good:
+                        for x in synonym:
+                            if g == x:
+                                keyword = (keyword[0], 'goodrate')
+                    for b in bad:
+                        for x in synonym:
+                            if b == x:
+                                keyword = (keyword[0], 'badrate')
             tup.append(keyword)
-
         return tup
 
     def find_postcode(self, keyword):
@@ -177,6 +221,10 @@ class Parser(object):
             sentence = nltk.tokenize.sent_tokenize(text.replace("What's", "What is"))
         elif text.find("Where's") != -1:
             sentence = nltk.tokenize.sent_tokenize(text.replace("Where's", "Where is"))
+        elif text.find("What're") != -1:
+            sentence = nltk.tokenize.sent_tokenize(text.replace("What're", "What are"))
+        elif text.find("Where're") != -1:
+            sentence = nltk.tokenize.sent_tokenize(text.replace("Where're", "Where are"))
         else:
             sentence = nltk.tokenize.sent_tokenize(text)
         return sentence
@@ -200,29 +248,33 @@ class Parser(object):
         for w, t in zip(word_list,tagged):
             if t[1] in ['VB', 'VBG', 'VBD','VBN','VBP','VBZ'] or t[0] == 'list':
                 word_list.remove(w)
-
-        phrase_list.update(self.get_phrases(word_list))
-
+        phrase_list.update(self.get_phrases(word_list, tagged))
         if 'entity' in dir():
             parameter = [entity, phrase_list]
             return parameter
         else:
             return phrase_list
    
-    def get_phrases(self, word_list):
+    def get_phrases(self, word_list, tagged):
         phrase_list = []
         for group in groupby(word_list, lambda x: x in self.to_ignore):
             if not group[0]:
                 l = list(group[1])
-                tagged = pos_tag(l)
+                new_tagged= []
+                for tag in tagged:
+                    for word in l:
+                        if word == tag[0]:
+                            new_tagged.append(tag)
                 # seperate adjective words
-                for w, t in zip(l, tagged):
+                for w, t in zip(l, new_tagged):
                     if t[1] in ['JJ','JJR','JJS','RBS','RB','RBR'] or  not (t[0].find('ese') == -1):
                         l.remove(w)
                         adjective = (t[0], )
                         phrase_list.append(adjective)
                 if l != []:
-                    phrase_list.append(tuple(l))
+                    for word in l:
+                        w = (word, )
+                        phrase_list.append(w)
         return phrase_list
 
     def calculate_probability(self, answers, query_length, query_list):
@@ -241,7 +293,6 @@ class Parser(object):
 
             probability = interact/union
             tup = (answer['target'], answer['queryTerms'], probability)
-            # print tup
             probability_set.append(tup)
 
         max_probability = 0
@@ -252,17 +303,21 @@ class Parser(object):
         return question_type
 
 
-    def define_question_type(self, text):
+    def define_question_type(self, text, keywords):
         # Jaccard Coefficient mechanism
-        potential_entities = self.find_entity(text)
         # format
         sentence = self.change_format(text)
-        # print sentence
-
-        if potential_entities:
-            entity = max(potential_entities, key = len)
-            s = text.lower().replace(entity, 'entity')
-            sentence = nltk.tokenize.sent_tokenize(s)
+        s = text.lower()
+        for key in keywords:
+            if key[1] == 'title':
+                s = s.replace(key[0], 'entity')
+            elif key[1] == 'feature' or key[1] == 'goodrate' or key[1] =='badrate':
+                s = s.replace(key[0], 'adjective')
+            elif key[1] == 'price':
+                s = s.replace(key[2], 'adjective')
+            elif key[1] == 'postleft':
+                s = s.replace(key[0], 'loc')
+        sentence = nltk.tokenize.sent_tokenize(s)
 
         for s in sentence:
             query_list = [word.lower() for word in wordpunct_tokenize(s)]

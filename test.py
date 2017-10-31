@@ -2,10 +2,9 @@
 from parser import Parser
 
 r = Parser()
-query = "GIVE ME THE BEST CHINESE RESTAURANT IN N1C."
+query = "Does Barrafina provides Halal foods?"
 
 # a = r.define_question_type(query)
-a = r.get_sql(query)
-
-print(a)
+r.get_data(query)
+# r.get_sql(query)
 
