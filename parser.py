@@ -4,9 +4,7 @@ import string
 from itertools import groupby
 import nltk
 from nltk.tokenize import wordpunct_tokenize
-from nltk.corpus import wordnet
 from PyDictionary import PyDictionary
-
 import MySQLdb
 from nltk import pos_tag
 
@@ -29,11 +27,12 @@ class Parser(object):
         cursor = db.cursor()
         cursor.execute(query)
         results = cursor.fetchall()
-        print query
         db.close()
+        print query
 
     def get_sql(self, query):
         keywords = self.get_keywords(query)
+        print keywords
         question_type = self.define_question_type(query, keywords)
         print question_type
         sql = ""
@@ -70,6 +69,20 @@ class Parser(object):
         elif question_type == "4":
             sql = "SELECT * FROM Restaurants_data WHERE "
             sql = self.sql2(keywords, sql)
+        elif question_type == "5":
+            sql = "SELECT "
+            for keyword in keywords:
+                if keyword[1] == 'phone':
+                    sql += "phone FROM Restaurants_data WHERE "
+                    sql = self.sql2(keywords, sql)
+                    sql += " GROUP BY phone"
+                    break
+                elif keyword[1] == 'speciality':
+                    sql += "feature FROM Restaurants_data WHERE "
+                    sql = self.sql2(keywords, sql)
+                    sql += " GROUP BY feature"
+                    break
+
         return sql
 
     def sql(self, keyword, sql):
@@ -124,8 +137,10 @@ class Parser(object):
         dictionary = PyDictionary()
         expensive = dictionary.synonym("expensive")
         cheap = dictionary.synonym("cheap")
-        good = dictionary.synonym("good") + dictionary.synonym("popular") + dictionary.synonym("well-known") + dictionary.synonym("best") + dictionary.synonym("top")
+        good = dictionary.synonym("good") + dictionary.synonym("popular") + dictionary.synonym("well-known") + dictionary.synonym("best") + dictionary.synonym("top") + dictionary.synonym("great")
         bad = dictionary.synonym("bad") + dictionary.synonym("worse") + dictionary.synonym("worst")
+        feature = dictionary.synonym("speciality") + dictionary.synonym('feature') + dictionary.synonym('features')
+        phone = dictionary.synonym("phone") + dictionary.synonym("telephone") + dictionary.synonym("contact") + dictionary.synonym("mobile-phone")
 
         for keyword in keywords:
         # price
@@ -137,6 +152,10 @@ class Parser(object):
         # feature
             elif keyword in features:
                 keyword = (keyword, 'feature')
+            elif keyword in feature:
+                keyword = (keyword, 'speciality')
+            elif keyword in phone:
+                keyword = (keyword, 'phone')
         # rate
             elif keyword in good:
                 keyword = (keyword, 'goodrate')
@@ -172,6 +191,18 @@ class Parser(object):
                         for x in synonym:
                             if b == x:
                                 keyword = (keyword[0], 'badrate')
+                    for f in features:
+                        for x in synonym:
+                            if f == x:
+                                keyword = (keyword[0], 'feature')
+                    for s in feature:
+                        for x in synonym:
+                            if s == x:
+                                keyword = (keyword[0], 'speciality')
+                    for p in phone:
+                        for x in synonym:
+                            if p == x:
+                                keyword = (keyword[0], 'phone')
             tup.append(keyword)
         return tup
 
@@ -244,6 +275,7 @@ class Parser(object):
                 s = s.lower().replace(entity, 'entity')
                 word_list = wordpunct_tokenize(s)
         tagged = pos_tag(word_list)
+
         # Delete verb in the query
         for w, t in zip(word_list,tagged):
             if t[1] in ['VB', 'VBG', 'VBD','VBN','VBP','VBZ'] or t[0] == 'list':
@@ -300,6 +332,7 @@ class Parser(object):
             if p[2] > max_probability:
                 max_probability = p[2]
                 question_type = p[0]
+        print max_probability
         return question_type
 
 
@@ -317,6 +350,8 @@ class Parser(object):
                 s = s.replace(key[2], 'adjective')
             elif key[1] == 'postleft':
                 s = s.replace(key[0], 'loc')
+            elif key[1] == 'phone' or key[1] == 'speciality':
+                s = s.replace(key[0], 'detail')
         sentence = nltk.tokenize.sent_tokenize(s)
 
         for s in sentence:

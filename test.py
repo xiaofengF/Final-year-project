@@ -2,7 +2,7 @@
 from parser import Parser
 
 r = Parser()
-query = "Does Barrafina provides Halal foods?"
+query = "Provide me the feature information of Barrafina. "
 
 # a = r.define_question_type(query)
 r.get_data(query)
