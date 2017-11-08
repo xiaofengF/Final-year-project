@@ -1,0 +1,245 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"keyw",
+				"keywords"
+			],
+			[
+				"key",
+				"keyword"
+			],
+			[
+				"phras",
+				"phrase_list"
+			],
+			[
+				"post",
+				"postleft"
+			],
+			[
+				"res",
+				"result"
+			],
+			[
+				"re",
+				"results"
+			],
+			[
+				"get",
+				"get_text"
+			],
+			[
+				"rest",
+				"restaurant"
+			],
+			[
+				"over",
+				"overflow-y"
+			],
+			[
+				"overflow",
+				"overflow-y"
+			],
+			[
+				"font",
+				"font"
+			],
+			[
+				"og_",
+				"og_next"
+			],
+			[
+				"bc",
+				"background-color"
+			],
+			[
+				"par",
+				"parallax-container"
+			],
+			[
+				"pa",
+				"parallax-container"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/fuxiaofeng/Desktop/Final-year-project/test.py",
+		"/Users/fuxiaofeng/Desktop/Final-year-project/parser.py",
+		"/Users/fuxiaofeng/Desktop/Helloworld/TestModel/models.py",
+		"/Users/fuxiaofeng/Desktop/test/parser.py",
+		"/Users/fuxiaofeng/Desktop/Helloworld/Helloworld/view.py",
+		"/Users/fuxiaofeng/Desktop/tripAdvisor.py",
+		"/Users/fuxiaofeng/Desktop/Helloworld/Helloworld/settings.py",
+		"/Users/fuxiaofeng/Desktop/Helloworld/Helloworld/testdb.py",
+		"/Users/fuxiaofeng/Desktop/Helloworld/Helloworld/urls.py",
+		"/Users/fuxiaofeng/Desktop/Helloworld/templates/hello.html",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/index.html",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/pages/aboutUs.html",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/pages/newProduct.html",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/css/style.css",
+		"/Users/fuxiaofeng/Desktop/demo/public_html/pages/aboutUs.html",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/css/style1.css",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/js/banner.js",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/css/scroll.css",
+		"/Users/fuxiaofeng/Desktop/bashite/demo/public_html/js/scroll.js",
+		"/Users/fuxiaofeng/Desktop/bashite/bashite原网站代码.htm",
+		"/Users/fuxiaofeng/Desktop/group26/home.html"
+	],
+	"find":
+	{
+		"height": 0.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "settings.sublime-project",
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
