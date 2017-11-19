@@ -6,6 +6,7 @@ from . import view
  
 urlpatterns = [
     url(r'^$', view.index),
+    url(r'^getData/$', view.getData)
 ]
 
 

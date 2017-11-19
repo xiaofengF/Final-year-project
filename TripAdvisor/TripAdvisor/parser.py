@@ -28,14 +28,14 @@ class Parser(object):
         cursor.execute(query)
         results = cursor.fetchall()
         db.close()
+        print query
         return results
-        # print query
 
     def get_sql(self, query):
         keywords = self.get_keywords(query)
-        # print keywords
+        print keywords
         question_type = self.define_question_type(query, keywords)
-        # print question_type
+        print question_type
         sql = ""
         if question_type == "1":
             sql = "SELECT * FROM Restaurants_data WHERE "
@@ -50,6 +50,8 @@ class Parser(object):
                     include_rate = 1
 
             sql = self.sql2(keywords, sql)
+            if sql[-6:-1] == "WHERE":
+                sql = sql[:-6]
             if include_rate == 1:
                 sql += ")"
         elif question_type == "2":
@@ -83,7 +85,7 @@ class Parser(object):
                     sql = self.sql2(keywords, sql)
                     sql += " GROUP BY feature"
                     break
-
+        print sql
         return sql
 
     def sql(self, keyword, sql):
@@ -130,7 +132,6 @@ class Parser(object):
         keywords = []
         for phrase in phrase_list:
             keywords.append(' '.join(phrase))
-
         tup = []
         features = [word.lower() for word in ['Afghani','African','Albanian','American','Arabic','Argentinean','Armenian','Asian','Australian','Austrian','Balti','Bangladeshi','Bar','Barbecue','Belgian','Brazilian','Brew Pub','British','Burmese','Cafe','Cajun & Creole','Cambodian','Canadian','Caribbean','Central American','Central Asian','Central European','Chilean','Chinese','Colombian','Contemporary','Croatian','Cuban','Czech','Danish','Delicatessen','Diner','Dutch','Eastern European','Ecuadorean','Egyptian','Ethiopian','European','Fast Food','Filipino','French','Fusion','Gastropub','Georgian','German','Gluten Free Options','Greek','Grill','Halal','Hawaiian','Healthy','Hungarian','Indian','Indonesian','International','Irish','Israeli','Italian','Jamaican','Japanese','Korean','Kosher','Latin','Latvian','Lebanese','Malaysian','Mediterranean','Mexican','Middle Eastern','Minority Chinese','Moroccan','Nepali','New Zealand','Norwegian','Pakistani','Persian','Peruvian','Pizza','Polish','Polynesian','Portuguese','Pub','Romanian','Russian','Salvadoran','Scandinavian','Scottish','Seafood','Singaporean','Soups','South American','Southwestern','Spanish','Sri Lankan','Steakhouse','Street Food','Sushi','Swedish','Swiss','Taiwanese','Thai','Tibetan','Tunisian','Turkish','Ukrainian','Uzbek','Vegan Options','Vegetarian Friendly','Venezuelan','Vietnamese','Welsh','Wine Bar']]
 
@@ -171,7 +172,7 @@ class Parser(object):
             else:
                 keyword = (keyword, 'unknown')
             # double check
-            if keyword[1] == 'unknown':
+            if keyword[1] == 'unknown' and keyword[0] != 'restaurant':
                 synonym = []
                 synonym = dictionary.synonym(keyword[0])
                 if synonym != []:
@@ -231,7 +232,7 @@ class Parser(object):
         title_list = []
         potential_entities = []
         # Delete ambiguous word
-        sentence = sentence.replace('the','')
+        sentence = sentence.replace('the','') + ' '
         # Find potential entities
         for result in results:
             title = result[0].lower()

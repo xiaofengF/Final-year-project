@@ -2,9 +2,9 @@
 from parser import Parser
 
 r = Parser()
-query = "Provide me the feature information of Barrafina. "
+query = "what is the best chinese restaurant"
 
 # a = r.define_question_type(query)
-r.get_data(query)
+print(r.get_data(query))
 # r.get_sql(query)
 

@@ -9,6 +9,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 </head>
 
+<nav class="teal lighten-2">
+  <div class="nav-wrapper">
+      <a href="#" class="brand-logo">Trip Information Advisor</a>
+  </div>
+</nav>
 <style type="text/css">
 @import 'http://fonts.googleapis.com/css?family=Noto+Sans';
 
@@ -32,6 +37,8 @@
   list-style: none;
   overflow-y: scroll;
   overflow-x: hidden;
+  width:100%;
+  height:600px;
 }
 
 .box{
@@ -119,28 +126,54 @@
 
 }
 </style>
+<script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+    var children = 0;
 
-<body style="background-color: #D3D3D3">
+    function scroll(){
+      var div=$("#list");
+      div.scrollTop(div[0].scrollHeight);
+    }
+
+    function addChat(query, id){
+      var ul = document.getElementById("list");
+      var li = document.createElement("li");
+      children = ul.children.length + 1
+      li.setAttribute("id", id + children);
+      li.appendChild(document.createTextNode(query));
+      ul.appendChild(li);
+      scroll();
+    }
+
+    $(document).ready(function(){
+      $("#enter").click(function(){
+        $('#enter').attr('disabled',"true");
+        var query = $("#query").val();
+        addChat(query, 'request');
+        $.get("/getData/", {"query":query}, function(ret){
+          addChat("Sorry I don't know what you mean.", 'result');
+          $('#result'+children).html(ret)
+          scroll();
+          $('#enter').removeAttr("disabled"); 
+        })
+      })
+    })
+</script>
+
+
+<body style="background-color: #D3D3D3;">
 
 	<div>  
-		<ul class="chat-thread" style="background-color: white;">
-			<li>hello world</li>
-			<li>hello world</li>
-			<li>hello world</li>
-			<li>hello world</li>			
-			<li>hello world</li>		
-			<li>hello world</li>
+		<ul class="chat-thread" style="background-color: white;" id="list">
 		</ul>
 		
-	<div class="box">
-		<form method="post">
-			<input type="input" name="query" style="width: 70%; height: 35px;">
-			<input type="submit" name="enter" class="btn" style="width:29%;">
-		</form>
-	</div>
-
-		<h1>{{data}}</h1>
-	</div>
+  	<div class="box">
+  		<form action="/getData/" method="get">
+  			<input type="input" name="query" id="query" style="width: 70%; height: 35px;">
+  			<input type="button" id="enter" name="enter" value="enter" class="btn" style="width:29%;">
+  		</form>
+  	</div>
+  </div>
 
 
 </body>
