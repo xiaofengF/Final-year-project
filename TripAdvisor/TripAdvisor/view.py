@@ -14,6 +14,8 @@ def getData(request):
 	query = request.GET['query']
 	query = query.encode('utf-8')
 	data = r.get_data(query)
+	if data == None:
+		data = "Sorry I don't know what you mean." 
 	return HttpResponse(data)
 
 

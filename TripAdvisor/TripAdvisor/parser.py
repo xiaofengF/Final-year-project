@@ -22,7 +22,11 @@ class Parser(object):
         self.to_ignore = set(self.stopwords + self.punctuations)
 
     def get_data(self, query):
+        if query == "":
+            return None
         query = self.get_sql(query)
+        if query == None:
+            return None
         db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
         cursor = db.cursor()
         cursor.execute(query)
@@ -33,7 +37,10 @@ class Parser(object):
 
     def get_sql(self, query):
         keywords = self.get_keywords(query)
+        keywords = [word for word in keywords if word[1] != "unknown"]
         print keywords
+        if keywords == []:
+            return None
         question_type = self.define_question_type(query, keywords)
         print question_type
         sql = ""
@@ -361,6 +368,7 @@ class Parser(object):
             query_length = len(query_list)
 
         # print query_list
+        print query_list
         answers = []
         # Get data
         db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
