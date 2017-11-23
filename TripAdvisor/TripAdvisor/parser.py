@@ -22,8 +22,6 @@ class Parser(object):
         self.to_ignore = set(self.stopwords + self.punctuations)
 
     def get_data(self, query):
-        if query == "":
-            return None
         query = self.get_sql(query)
         if query == None:
             return None
@@ -37,6 +35,8 @@ class Parser(object):
 
     def get_sql(self, query):
         keywords = self.get_keywords(query)
+        if keywords == None:
+            return None
         keywords = [word for word in keywords if word[1] != "unknown"]
         print keywords
         if keywords == []:
@@ -68,7 +68,7 @@ class Parser(object):
                 sql = sql[:-7]
 
             for keyword in keywords:
-                if keywords[1] == 'badrate':
+                if keyword[1] == 'badrate':
                     sql += " ORDER BY rate DESC"
                 elif keyword[1] == 'goodrate':
                     sql += " ORDER BY rate"
@@ -127,10 +127,22 @@ class Parser(object):
                 sql = sql[:-5]
         return sql
 
+    def get_synonyms(self, wordSet, dictionary):
+        new_word = []
+        for word in wordSet:
+            li = dictionary.synonym(word)
+            if not li == None:
+                for l in li:
+                    new_word.append(l)
+        wordSet.update(new_word)
+        return wordSet
+
     def get_keywords(self, text):
         sentence = nltk.tokenize.sent_tokenize(text)
+        if sentence == []:
+            return None
         for s in sentence:
-            parameter = self._generate_phrases(s)
+            parameter = self.generate_phrases(s)
             if type(parameter)==list:
                 phrase_list = parameter[1]
                 entity = parameter[0]
@@ -142,14 +154,14 @@ class Parser(object):
         tup = []
         features = [word.lower() for word in ['Afghani','African','Albanian','American','Arabic','Argentinean','Armenian','Asian','Australian','Austrian','Balti','Bangladeshi','Bar','Barbecue','Belgian','Brazilian','Brew Pub','British','Burmese','Cafe','Cajun & Creole','Cambodian','Canadian','Caribbean','Central American','Central Asian','Central European','Chilean','Chinese','Colombian','Contemporary','Croatian','Cuban','Czech','Danish','Delicatessen','Diner','Dutch','Eastern European','Ecuadorean','Egyptian','Ethiopian','European','Fast Food','Filipino','French','Fusion','Gastropub','Georgian','German','Gluten Free Options','Greek','Grill','Halal','Hawaiian','Healthy','Hungarian','Indian','Indonesian','International','Irish','Israeli','Italian','Jamaican','Japanese','Korean','Kosher','Latin','Latvian','Lebanese','Malaysian','Mediterranean','Mexican','Middle Eastern','Minority Chinese','Moroccan','Nepali','New Zealand','Norwegian','Pakistani','Persian','Peruvian','Pizza','Polish','Polynesian','Portuguese','Pub','Romanian','Russian','Salvadoran','Scandinavian','Scottish','Seafood','Singaporean','Soups','South American','Southwestern','Spanish','Sri Lankan','Steakhouse','Street Food','Sushi','Swedish','Swiss','Taiwanese','Thai','Tibetan','Tunisian','Turkish','Ukrainian','Uzbek','Vegan Options','Vegetarian Friendly','Venezuelan','Vietnamese','Welsh','Wine Bar']]
 
-# synonyms  
+        # synonyms  
         dictionary = PyDictionary()
-        expensive = dictionary.synonym("expensive")
-        cheap = dictionary.synonym("cheap")
-        good = dictionary.synonym("good") + dictionary.synonym("popular") + dictionary.synonym("well-known") + dictionary.synonym("best") + dictionary.synonym("top") + dictionary.synonym("great")
-        bad = dictionary.synonym("bad") + dictionary.synonym("worse") + dictionary.synonym("worst")
-        feature = dictionary.synonym("speciality") + dictionary.synonym('feature') + dictionary.synonym('features')
-        phone = dictionary.synonym("phone") + dictionary.synonym("telephone") + dictionary.synonym("contact") + dictionary.synonym("mobile-phone")
+        good = self.get_synonyms(set(['good', 'popular', 'well-known','best','top','great']), dictionary)
+        expensive = self.get_synonyms(set(['expensive']), dictionary)
+        cheap = self.get_synonyms(set(['cheap']), dictionary)
+        bad = self.get_synonyms(set(['bad', 'worse','worst']), dictionary)
+        feature = self.get_synonyms(set(['speciality', 'feature', 'features']), dictionary)
+        phone = self.get_synonyms(set(['phone','telephone','contact','mobile-phone']), dictionary)
 
         for keyword in keywords:
         # price
@@ -178,40 +190,6 @@ class Parser(object):
                 keyword = (entity, 'title')
             else:
                 keyword = (keyword, 'unknown')
-            # double check
-            if keyword[1] == 'unknown' and keyword[0] != 'restaurant':
-                synonym = []
-                synonym = dictionary.synonym(keyword[0])
-                if synonym != []:
-                    for c in cheap:
-                        for x in synonym:
-                            if c == x:
-                                keyword = ('$', 'price', word)
-                                break
-                    for e in expensive:
-                        for x in synonym:
-                            if e == x:
-                                keyword = ('$$$$', 'price', word)
-                    for g in good:
-                        for x in synonym:
-                            if g == x:
-                                keyword = (keyword[0], 'goodrate')
-                    for b in bad:
-                        for x in synonym:
-                            if b == x:
-                                keyword = (keyword[0], 'badrate')
-                    for f in features:
-                        for x in synonym:
-                            if f == x:
-                                keyword = (keyword[0], 'feature')
-                    for s in feature:
-                        for x in synonym:
-                            if s == x:
-                                keyword = (keyword[0], 'speciality')
-                    for p in phone:
-                        for x in synonym:
-                            if p == x:
-                                keyword = (keyword[0], 'phone')
             tup.append(keyword)
         return tup
 
@@ -238,8 +216,7 @@ class Parser(object):
         db.close()
         title_list = []
         potential_entities = []
-        # Delete ambiguous word
-        sentence = sentence.replace('the','') + ' '
+
         # Find potential entities
         for result in results:
             title = result[0].lower()
@@ -269,7 +246,7 @@ class Parser(object):
             sentence = nltk.tokenize.sent_tokenize(text)
         return sentence
 
-    def _generate_phrases(self, sentence):
+    def generate_phrases(self, sentence):
         phrase_list = set()
         potential_entities = self.find_entity(sentence)
         
@@ -283,6 +260,7 @@ class Parser(object):
             for s in sentence:
                 s = s.lower().replace(entity, 'entity')
                 word_list = wordpunct_tokenize(s)
+
         tagged = pos_tag(word_list)
 
         # Delete verb in the query
@@ -290,6 +268,7 @@ class Parser(object):
             if t[1] in ['VB', 'VBG', 'VBD','VBN','VBP','VBZ'] or t[0] == 'list':
                 word_list.remove(w)
         phrase_list.update(self.get_phrases(word_list, tagged))
+        
         if 'entity' in dir():
             parameter = [entity, phrase_list]
             return parameter
