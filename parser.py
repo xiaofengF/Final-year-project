@@ -76,9 +76,13 @@ class Parser(object):
             sql = "SELECT location FROM Restaurants_data WHERE " 
             sql = self.sql2(keywords, sql)
             sql += " GROUP BY location"
+            if sql == "SELECT location FROM Restaurants_data WHERE  GROUP BY location":
+                return None
         elif question_type == "4":
             sql = "SELECT * FROM Restaurants_data WHERE "
             sql = self.sql2(keywords, sql)
+            if sql == "SELECT * FROM Restaurants_data WHERE ":
+                return None
         elif question_type == "5":
             sql = "SELECT "
             for keyword in keywords:
@@ -92,6 +96,8 @@ class Parser(object):
                     sql = self.sql2(keywords, sql)
                     sql += " GROUP BY feature"
                     break
+            if sql == "SELECT ":
+                return None
         print sql
         return sql
 
@@ -216,6 +222,7 @@ class Parser(object):
         db.close()
         title_list = []
         potential_entities = []
+        sentence = sentence.replace('the','') + ' '
 
         # Find potential entities
         for result in results:
@@ -339,7 +346,7 @@ class Parser(object):
             elif key[1] == 'postleft':
                 s = s.replace(key[0], 'loc')
             elif key[1] == 'phone' or key[1] == 'speciality':
-                s = s.replace(key[0], 'detail')
+                s = s.replace(key[0], 'd')
         sentence = nltk.tokenize.sent_tokenize(s)
 
         for s in sentence:
