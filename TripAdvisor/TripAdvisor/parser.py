@@ -22,9 +22,13 @@ class Parser(object):
         self.to_ignore = set(self.stopwords + self.punctuations)
 
     def get_data(self, query):
+        #  the main function for getting data from the database
+        # get the SQL query
         query = self.get_sql(query)
+        # None will be return if the query cannot be analyzed
         if query == None:
             return None
+        # get the data from database
         db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
         cursor = db.cursor()
         cursor.execute(query)
@@ -34,16 +38,24 @@ class Parser(object):
         return results
 
     def get_sql(self, query):
+        # get keywords from the query
         keywords = self.get_keywords(query)
+        # None will be return if keywords cannot be found
         if keywords == None:
             return None
+
+        # drop unknown word
         keywords = [word for word in keywords if word[1] != "unknown"]
-        print keywords
+        print 'keywords:',keywords
         if keywords == []:
             return None
+
+        # determine the question type of the query
         question_type = self.define_question_type(query, keywords)
-        print question_type
+        print 'question type:',question_type
+
         sql = ""
+        # descrpitive question
         if question_type == "1":
             sql = "SELECT * FROM Restaurants_data WHERE "
             include_rate = 0
@@ -61,6 +73,7 @@ class Parser(object):
                 sql = sql[:-6]
             if include_rate == 1:
                 sql += ")"
+        # list question 
         elif question_type == "2":
             sql = "SELECT * FROM Restaurants_data WHERE "
             sql = self.sql2(keywords, sql)
@@ -72,17 +85,20 @@ class Parser(object):
                     sql += " ORDER BY rate DESC"
                 elif keyword[1] == 'goodrate':
                     sql += " ORDER BY rate"
+        # location question
         elif question_type == "3":
             sql = "SELECT location FROM Restaurants_data WHERE " 
             sql = self.sql2(keywords, sql)
             sql += " GROUP BY location"
             if sql == "SELECT location FROM Restaurants_data WHERE  GROUP BY location":
-            	return None
+                return None
+        # Yes or No question
         elif question_type == "4":
             sql = "SELECT * FROM Restaurants_data WHERE "
             sql = self.sql2(keywords, sql)
             if sql == "SELECT * FROM Restaurants_data WHERE ":
-            	return None
+                return None
+        # detail question
         elif question_type == "5":
             sql = "SELECT "
             for keyword in keywords:
@@ -97,7 +113,10 @@ class Parser(object):
                     sql += " GROUP BY feature"
                     break
             if sql == "SELECT ":
-            	return None
+                return None
+        else:
+            return None
+
         print sql
         return sql
 
@@ -107,6 +126,7 @@ class Parser(object):
         sql += "'"
         return sql
 
+    # add limitation into the SQL query
     def sql2(self, keywords, sql):
         limit = 0
         for keyword in keywords:
@@ -133,6 +153,7 @@ class Parser(object):
                 sql = sql[:-5]
         return sql
 
+    # get synonyms by using the external dictionary
     def get_synonyms(self, wordSet, dictionary):
         new_word = []
         for word in wordSet:
@@ -143,10 +164,12 @@ class Parser(object):
         wordSet.update(new_word)
         return wordSet
 
+    #ge keywords from the query
     def get_keywords(self, text):
         sentence = nltk.tokenize.sent_tokenize(text)
         if sentence == []:
             return None
+
         for s in sentence:
             parameter = self.generate_phrases(s)
             if type(parameter)==list:
@@ -158,6 +181,7 @@ class Parser(object):
         for phrase in phrase_list:
             keywords.append(' '.join(phrase))
         tup = []
+        # all recogniziable features
         features = [word.lower() for word in ['Afghani','African','Albanian','American','Arabic','Argentinean','Armenian','Asian','Australian','Austrian','Balti','Bangladeshi','Bar','Barbecue','Belgian','Brazilian','Brew Pub','British','Burmese','Cafe','Cajun & Creole','Cambodian','Canadian','Caribbean','Central American','Central Asian','Central European','Chilean','Chinese','Colombian','Contemporary','Croatian','Cuban','Czech','Danish','Delicatessen','Diner','Dutch','Eastern European','Ecuadorean','Egyptian','Ethiopian','European','Fast Food','Filipino','French','Fusion','Gastropub','Georgian','German','Gluten Free Options','Greek','Grill','Halal','Hawaiian','Healthy','Hungarian','Indian','Indonesian','International','Irish','Israeli','Italian','Jamaican','Japanese','Korean','Kosher','Latin','Latvian','Lebanese','Malaysian','Mediterranean','Mexican','Middle Eastern','Minority Chinese','Moroccan','Nepali','New Zealand','Norwegian','Pakistani','Persian','Peruvian','Pizza','Polish','Polynesian','Portuguese','Pub','Romanian','Russian','Salvadoran','Scandinavian','Scottish','Seafood','Singaporean','Soups','South American','Southwestern','Spanish','Sri Lankan','Steakhouse','Street Food','Sushi','Swedish','Swiss','Taiwanese','Thai','Tibetan','Tunisian','Turkish','Ukrainian','Uzbek','Vegan Options','Vegetarian Friendly','Venezuelan','Vietnamese','Welsh','Wine Bar']]
 
         # synonyms  
@@ -169,6 +193,7 @@ class Parser(object):
         feature = self.get_synonyms(set(['speciality', 'feature', 'features']), dictionary)
         phone = self.get_synonyms(set(['phone','telephone','contact','mobile-phone']), dictionary)
 
+        # divide keyword into different groups
         for keyword in keywords:
         # price
             word = keyword
