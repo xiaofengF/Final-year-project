@@ -1,0 +1,22 @@
+sentence -> NP[CAT=?] VP[CAT=?]
+NP[CAT=?] -> N[CAT=? SUBCAT=obj1] PREP[CAT=?] N[CAT=? SUBCAT=sub] | N[CAT=? SUBCAT=obj1]
+N[CAT=? SUBCAT=sub] -> the restaurant | REST NAME
+N[CAT=rank SUBCAT=obj] -> #rank
+N[CAT=price SUBCAT=obj] -> cheap | expensive
+N[CAT=phone SUBCAT=obj] -> REST PHONE
+N[CAT=address SUBCAT=obj] -> REST ADDRESS
+N[CAT=sub SUBCAT=obj] -> #rank restaurant in London | cheap | expensive
+N[CAT=feature SUBCAT=obj] -> REST FEATURE
+N[CAT=sub SUBCAT=obj1] -> the restaurant | REST NAME
+N[CAT=rank SUBCAT=obj1] -> the rank
+N[CAT=price SUBCAT=obj1] -> the price | the cost
+N[CAT=phone SUBCAT=obj1] -> the phone number
+N[CAT=address SUBCAT=obj1] -> the address
+N[CAT=feature SUBCAT=obj1] -> the feature
+N[CAT=price SUBCAT=obj2] -> REST PRICE
+N[CAT=sub SUBCAT=obj2] -> REST FEATURE
+VP[CAT=?] -> V[CAT=? SUBCAT=predicate TENSE=pres NUM=sg] N[CAT=? SUBCAT=obj] | V[CAT=? SUBCAT=predicate TENSE=pres NUM=sg] N[CAT=? SUBCAT=obj2] | V[CAT=? SUBCAT=trans TENSE=pres NUM=sg] N[CAT=? SUBCAT=obj2]
+V[CAT=? SUBCAT=predicate TENSE=pres NUM=sg] -> is
+V[CAT=price SUBCAT=trans TENSE=pres NUM=sg] -> will cost you | will spend you
+V[CAT=sub SUBCAT=trans TENSE=pres NUM=sg] -> serves | provides
+PREP[CAT=?] -> of

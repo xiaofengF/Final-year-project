@@ -131,7 +131,7 @@ class NP(object):
 					result.append(noun + ' ' + p.getPREP() + ' ' + noun1)
 			return [result, n.getN()]
 
-np = NP('price')
+np = NP('sub')
 vp = VP('price', 'pres', 'sg')
 
 result = np.getNP()
