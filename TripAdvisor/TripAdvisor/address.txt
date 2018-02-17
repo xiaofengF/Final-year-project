@@ -1,0 +1,9 @@
+sentence -> NP[CAT=?] V[CAT=? SUBCAT=predicate] N[CAT=? SUBCAT=obj2] | N[CAT=? SUBCAT=sub] V[CAT=? SUBCAT=predicate] ADJ[CAT=?] PREP[CAT=? SUBCAT=obj2] N[CAT=? SUBCAT=obj2]
+NP[CAT=?] -> N[CAT=? SUBCAT=obj1] PREP[CAT=? SUBCAT=obj1] N[CAT=? SUBCAT=sub]
+N[CAT=? SUBCAT=sub] -> the restaurant | this restaurant | NAME
+N[CAT=? SUBCAT=obj1] -> the address | the location
+N[CAT=? SUBCAT=obj2] -> ADDRESS
+V[CAT=? SUBCAT=predicate] -> is
+PREP[CAT=? SUBCAT=obj1] -> of
+PREP[CAT=? SUBCAT=obj2] -> on
+ADJ[CAT=?] -> located

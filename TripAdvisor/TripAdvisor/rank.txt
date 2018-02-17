@@ -1,0 +1,15 @@
+sentence -> PREP[CAT=? SUBCAT=prep1] NP[CAT=?] COMMA[CAT=?] N[CAT=? SUBCAT=sub1] V[CAT=? SUBCAT=predicate] ADJ[CAT=?] N[CAT=? SUBCAT=obj2] PREP[CAT=? SUBCAT=prep2] N[CAT=? SUBCAT=obj3]
+NP[CAT=?] -> N[CAT=? SUBCAT=obj1] PREP[CAT=? SUBCAT=prep3] N[CAT=? SUBCAT=sub2]
+PREP[CAT=? SUBCAT=prep1] -> according to | based on | on the basis of
+PREP[CAT=? SUBCAT=prep2] -> in
+PREP[CAT=? SUBCAT=prep3] -> of
+V[CAT=? SUBCAT=predicate] -> is
+COMMA[CAT=?] -> ,
+N[CAT=? SUBCAT=obj1] -> the data | the information | the website
+N[CAT=? SUBCAT=obj2] -> restaurant
+N[CAT=? SUBCAT=obj3] -> London
+N[CAT=? SUBCAT=sub1] -> NAME
+N[CAT=? SUBCAT=sub2] -> TripAdvisor
+ADJ[CAT=highest] -> the most popular | #1 | the best | a top-rated | a first-class
+ADJ[CAT=high] -> a popular | a top-rated | RANK | a first-class
+ADJ[CAT=low] -> RANK

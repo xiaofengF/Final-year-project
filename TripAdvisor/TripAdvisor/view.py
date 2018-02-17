@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from parser import Parser
 from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_exempt
+import nlg
 
 @csrf_exempt
 def index(request):
@@ -13,7 +14,9 @@ def getData(request):
 	r = Parser()
 	query = request.GET['query']
 	query = query.encode('utf-8')
-	data = r.get_data(query)
+	# data = r.get_data(query)
+	data = nlg.generate_long_sentence('burger king', 'abcabc', '07715562605', '£££', 33, 'fast food')
+
 	if data == None:
 		data = "Sorry I don't know what you mean." 
 	return HttpResponse(data)

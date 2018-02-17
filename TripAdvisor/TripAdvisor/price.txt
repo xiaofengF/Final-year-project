@@ -1,0 +1,18 @@
+sentence -> NP[CAT=?] VP[CAT=?] CONJ[CAT=?] sentence2[CAT=?] | N[CAT=? SUBCAT=sub2] VP2[CAT=?] CONJ[CAT=?] sentence2[CAT=?]
+sentence2[CAT=?] -> PRON[CAT=?] V[CAT=? SUBCAT=trans] N[CAT=? SUBCAT=obj3]
+NP[CAT=?] -> N[CAT=? SUBCAT=obj1] PREP[CAT=?] N[CAT=? SUBCAT=sub] | N[CAT=? SUBCAT=sub]
+VP[CAT=?] -> V[CAT=? SUBCAT=predicate] ADJ[CAT=?]
+VP2[CAT=?] -> V[CAT=? SUBCAT=predicate] ART[CAT=?] ADJ[CAT=?] N[CAT=? SUBCAT=obj2]
+ART[CAT=?] -> a
+ADJ[CAT=expensive] -> expensive | luxurious | overpriced | pricy
+ADJ[CAT=cheap] -> cheap | affordable
+N[CAT=? SUBCAT=obj1] -> the price | the charge
+N[CAT=? SUBCAT=obj2] -> restaurant
+N[CAT=? SUBCAT=obj3] -> PRICE
+N[CAT=? SUBCAT=sub] -> the restaurant | NAME
+N[CAT=? SUBCAT=sub2] -> NAME
+V[CAT=? SUBCAT=predicate] -> is
+V[CAT=? SUBCAT=trans] -> will cost you | will spend you
+PREP[CAT=?] -> of
+PRON[CAT=?] -> it
+CONJ[CAT=?] -> and

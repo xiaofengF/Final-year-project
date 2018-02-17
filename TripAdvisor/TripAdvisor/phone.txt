@@ -1,0 +1,19 @@
+sentence -> NP[CAT=?] V[CAT=? SUBCAT=predicate] N[CAT=? SUBCAT=obj1] | PRON[CAT=?] AUX[CAT=?] VP[CAT=? SUBCAT=obj1] PREP[CAT=? SUBCAT=obj2] VP[CAT=? SUBCAT=obj2] | PREP[CAT=? SUBCAT=obj2] VP[CAT=? SUBCAT=obj2] COMMA[CAT=?] PRON[CAT=?] AUX[CAT=?] VP[CAT=? SUBCAT=obj1]
+NP[CAT=?] -> N[CAT=? SUBCAT=obj2] PREP[CAT=? SUBCAT=obj1] N[CAT=? SUBCAT=sub]
+VP[CAT=? SUBCAT=obj1] -> V[CAT=? SUBCAT=obj1] N[CAT=? SUBCAT=sub] PREP[CAT=? SUBCAT=obj3] N[CAT=? SUBCAT=obj1] 
+VP[CAT=? SUBCAT=obj2] -> V[CAT=? SUBCAT=obj2] N[CAT=? SUBCAT=obj3] CONJ[CAT=?] N[CAT=? SUBCAT=obj4]
+V[CAT=? SUBCAT=obj1] -> contact
+V[CAT=? SUBCAT=obj2] -> make
+V[CAT=? SUBCAT=predicate] -> is
+N[CAT=? SUBCAT=sub] -> this restaurant | the restaurant | NAME
+N[CAT=? SUBCAT=obj1] -> PHONE
+N[CAT=? SUBCAT=obj2] -> the phone number | the contact information
+N[CAT=? SUBCAT=obj3] -> a booking | a reservation
+N[CAT=? SUBCAT=obj4] -> enquiry
+PREP[CAT=? SUBCAT=obj1] -> of
+PREP[CAT=? SUBCAT=obj2] -> to
+PREP[CAT=? SUBCAT=obj3] -> via
+AUX[CAT=?] -> can
+PRON[CAT=?] -> you
+COMMA[CAT=?] -> ,
+CONJ[CAT=?] -> or

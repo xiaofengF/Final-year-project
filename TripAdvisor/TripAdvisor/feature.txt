@@ -1,0 +1,4 @@
+sentence -> N[CAT=? SUBCAT=sub] V[CAT=?] N[CAT=?]
+N[CAT=? SUBCAT=sub] -> it | this restaurant | the restaurant | NAME
+V[CAT=?] -> serves | provides
+N[CAT=?] -> FEATURE
