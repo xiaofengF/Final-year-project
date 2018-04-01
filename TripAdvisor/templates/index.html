@@ -136,6 +136,7 @@
     }
 
     function addChat(query, id){
+      // add a message bubble in the chat window
       var ul = document.getElementById("list");
       var li = document.createElement("li");
       children = ul.children.length + 1
@@ -149,10 +150,28 @@
       $("#enter").click(function(){
         $('#enter').attr('disabled',"true");
         var query = $("#query").val();
+        // add query to the chat window
         addChat(query, 'request');
+        
+        if(!isNaN(parseInt(query))){
+          var last_question_id = children - 2;
+          var last_question = $('#request' + last_question_id).html();
+
+          if(last_question == null){
+            addChat("Sorry I don't know what you mean.", 'result');
+            $('#enter').removeAttr("disabled"); 
+            return;
+          }else{
+            // pass the choose to the NLG system
+            query = last_question + '<' + query + '>';
+          }
+        }
+
         $.get("/getData/", {"query":query}, function(ret){
+          // initialize the answer
           addChat("Sorry I don't know what you mean.", 'result');
-          $('#result'+children).html(ret)
+          // get the result from NLG system
+          $('#result'+children).html(ret);
           scroll();
           $('#enter').removeAttr("disabled"); 
         })

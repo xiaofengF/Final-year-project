@@ -24,31 +24,33 @@ class Parser(object):
     def get_data(self, query):
         #  the main function for getting data from the database
         # get the SQL query
-        query = self.get_sql(query)
+        temp_query = self.get_sql(query)
+        query = temp_query[0]
         # None will be return if the query cannot be analyzed
         if query == None:
-            return None
+            return None, None
         # get the data from database
         db = MySQLdb.connect(host='localhost', user='root',passwd='961127',db='django')
         cursor = db.cursor()
         cursor.execute(query)
         results = cursor.fetchall()
         db.close()
+        return_value = (results, temp_query[1])
         print query
-        return results
+        return return_value
 
     def get_sql(self, query):
         # get keywords from the query
         keywords = self.get_keywords(query)
         # None will be return if keywords cannot be found
         if keywords == None:
-            return None
+            return None, None
 
         # drop unknown word
         keywords = [word for word in keywords if word[1] != "unknown"]
         print 'keywords:',keywords
         if keywords == []:
-            return None
+            return None, None
 
         # determine the question type of the query
         question_type = self.define_question_type(query, keywords)
@@ -91,13 +93,13 @@ class Parser(object):
             sql = self.sql2(keywords, sql)
             sql += " GROUP BY location"
             if sql == "SELECT location FROM Restaurants_data WHERE  GROUP BY location":
-                return None
+                return None, None
         # Yes or No question
         elif question_type == "4":
             sql = "SELECT * FROM Restaurants_data WHERE "
             sql = self.sql2(keywords, sql)
             if sql == "SELECT * FROM Restaurants_data WHERE ":
-                return None
+                return None, None
         # detail question
         elif question_type == "5":
             sql = "SELECT "
@@ -113,12 +115,11 @@ class Parser(object):
                     sql += " GROUP BY feature"
                     break
             if sql == "SELECT ":
-                return None
+                return None, None
         else:
-            return None
-
-        print sql
-        return sql
+            return None, None
+        return_value = (sql, question_type)
+        return return_value
 
     def sql(self, keyword, sql):
         sql = "'"

@@ -1,39 +1,102 @@
 # coding: utf8
 import random
 import os
-def generate_long_sentence(name, address, phone, price, rank, feature):
+
+def generate_price_sentence(price, name, path):
+	if price == '££££':
+		sentence = generate_sentence('expensive', path+'/TripAdvisor/price.txt')
+	elif price != None:
+		sentence = generate_sentence('cheap', path+'/TripAdvisor/price.txt')
+	else:
+		return "ERROR"
+	sentence = sentence.replace('NAME', name)
+	if sentence.find("PRICE") != -1:
+		sentence = sentence.replace("PRICE", price)
+	return sentence
+
+def generate_rank_sentence(rank, name, path):
+	if rank == 1:
+		sentence = generate_sentence('highest', path+'/TripAdvisor/rank.txt')
+	elif rank < 2000:
+		sentence = generate_sentence('high', path+'/TripAdvisor/rank.txt')
+	elif rank >= 2000:
+		sentence = generate_sentence('low', path+'/TripAdvisor/rank.txt')
+	else:
+		return "ERROR"
+	sentence = sentence.replace('NAME', name)
+	if sentence.find("RANK") != -1:
+		sentence = sentence.replace("RANK", "#" + str(rank))
+	return sentence
+
+def generate_phone_sentence(phone, name, path):
+	if phone != None:
+		# "none": whatever the input
+		sentence = generate_sentence('none', path+'/TripAdvisor/phone.txt')
+	else:
+		return "ERROR"
+	sentence = sentence.replace('NAME', name)
+	if sentence.find("PHONE") != -1:
+		sentence = sentence.replace("PHONE", phone)
+	return sentence
+
+def generate_address_sentence(address, name, path):
+	if address != None:
+		# "none": whatever the input
+		sentence = generate_sentence('none', path+'/TripAdvisor/address.txt')
+	else:
+		return "ERROR"
+	sentence = sentence.replace('NAME', name)
+	if sentence.find("ADDRESS") != -1:
+		sentence = sentence.replace("ADDRESS", address)
+	return sentence
+
+def generate_feature_sentence(feature, name, path):
+	if feature != None:
+		# "none": whatever the input
+		sentence = generate_sentence('none', path+'/TripAdvisor/feature.txt')
+	else:
+		return "ERROR"
+	sentence = sentence.replace('NAME', name)
+	if sentence.find("FEATURE") != -1:
+		sentence = sentence.replace("FEATURE", feature)
+	return sentence
+
+def generate_long_sentence(name, address, phone, price, rank, feature, question_type):
+
 	if name == 'unknown':
 		return ""
 	sentences = []
 	path = os.path.abspath('.')
-	print path
-	# rank sentence
-	if rank == 1:
-		sentences.append(generate_sentence('highest', path+'/TripAdvisor/rank.txt'))
-	elif rank < 2000:
-		sentences.append(generate_sentence('high', path+'/TripAdvisor/rank.txt'))
-	elif rank >= 2000:
-		sentences.append(generate_sentence('low', path+'/TripAdvisor/rank.txt'))
-	# price sentence
-	if price == '££££':
-		sentences.append(generate_sentence('expensive', path+'/TripAdvisor/price.txt'))
-	elif price != None:
-		sentences.append(generate_sentence('cheap', path+'/TripAdvisor/price.txt'))
-	# phone, address and feature
-	if phone != None:
-		sentences.append(generate_sentence('none', path+'/TripAdvisor/phone.txt'))
-	if address != None:
-		sentences.append(generate_sentence('none', path+'/TripAdvisor/address.txt'))
-	if feature != None:
-		sentences.append(generate_sentence('none', path+'/TripAdvisor/feature.txt'))
-
-	# replace keywords
-
+	name = name.title()
 	
-	# glue
+	if question_type == 1:
+		# rank sentence
+		sentences.append(generate_rank_sentence(rank, name, path))
+		# price sentence
+		sentences.append(generate_price_sentence(price, name, path))
+		# phone, address and feature
+		sentences.append(generate_phone_sentence(phone, name, path))
+		sentences.append(generate_address_sentence(address, name, path))
+		sentences.append(generate_feature_sentence(feature, name, path))
+	elif question_type == 3:
+		sentences.append(generate_address_sentence(address, name, path))
+		
+	temp_sentence = '.'.join(sentences)
+	# Capitalize the first word
+	temp_sentence = temp_sentence[0].upper() + temp_sentence[1:]
+	# Capitalize all first words in sentences and put space between every sentence.
+	pos = temp_sentence.find(".")
+	while pos != -1:
+		temp_sentence = temp_sentence[:pos + 1] + " " +  temp_sentence[pos + 1].upper() + temp_sentence[pos+2:]
+		if temp_sentence[pos + 1:].find(".") == -1:
+			break
+		pos = temp_sentence[pos + 1:].find(".") + pos + 1
+
+	temp_sentence = temp_sentence[:len(temp_sentence)] + '.'
 
 
-	return '.'.join(sentences)
+
+	return temp_sentence
 
 def generate_sentence(CAT, TXT_FILE):
 	answer = read_expressions('sentence', CAT, TXT_FILE)
@@ -119,7 +182,6 @@ def read_expressions(position, CAT, TXT_FILE):
 								if type(e) == list:
 									sentence = ['UNKNOWN']
 									break
-							# print sentence
 						elif s != []:
 							# terminal found
 							sentence.append(s)
