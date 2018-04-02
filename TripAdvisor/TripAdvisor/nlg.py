@@ -2,6 +2,48 @@
 import random
 import os
 
+def generate_long_sentence(name, address, phone, price, rank, feature, question_type):
+	sentences = []
+	path = os.path.abspath('.')
+
+	if type(question_type) == str:
+		name = "this restaurant"
+		if question_type == "phone":
+			sentences.append(generate_phone_sentence(phone, name, path))
+		elif question_type == "speciality":
+			sentences.append(generate_feature_sentence(feature, name, path))
+	else:	
+		if question_type == 1:
+			name = name.title()
+			# rank sentence
+			sentences.append(generate_rank_sentence(rank, name, path))
+			# price sentence
+			sentences.append(generate_price_sentence(price, name, path))
+			# phone, address and feature
+			sentences.append(generate_phone_sentence(phone, name, path))
+			sentences.append(generate_address_sentence(address, name, path))
+			sentences.append(generate_feature_sentence(feature, name, path))
+		elif question_type == 3:
+			name = "this restaurant"
+			sentences.append(generate_address_sentence(address, name, path))
+		else:
+			return "ERROR"
+
+	temp_sentence = '.'.join(sentences)
+	# Capitalize the first word
+	temp_sentence = temp_sentence[0].upper() + temp_sentence[1:]
+	# Capitalize all first words in sentences and put space between every sentence.
+	pos = temp_sentence.find(".")
+	while pos != -1:
+		temp_sentence = temp_sentence[:pos + 1] + " " +  temp_sentence[pos + 1].upper() + temp_sentence[pos+2:]
+		if temp_sentence[pos + 1:].find(".") == -1:
+			break
+		pos = temp_sentence[pos + 1:].find(".") + pos + 1
+
+	temp_sentence = temp_sentence[:len(temp_sentence)] + '.'
+
+	return temp_sentence
+
 def generate_price_sentence(price, name, path):
 	if price == '££££':
 		sentence = generate_sentence('expensive', path+'/TripAdvisor/price.txt')
@@ -60,43 +102,6 @@ def generate_feature_sentence(feature, name, path):
 	if sentence.find("FEATURE") != -1:
 		sentence = sentence.replace("FEATURE", feature)
 	return sentence
-
-def generate_long_sentence(name, address, phone, price, rank, feature, question_type):
-
-	if name == 'unknown':
-		return ""
-	sentences = []
-	path = os.path.abspath('.')
-	name = name.title()
-	
-	if question_type == 1:
-		# rank sentence
-		sentences.append(generate_rank_sentence(rank, name, path))
-		# price sentence
-		sentences.append(generate_price_sentence(price, name, path))
-		# phone, address and feature
-		sentences.append(generate_phone_sentence(phone, name, path))
-		sentences.append(generate_address_sentence(address, name, path))
-		sentences.append(generate_feature_sentence(feature, name, path))
-	elif question_type == 3:
-		sentences.append(generate_address_sentence(address, name, path))
-		
-	temp_sentence = '.'.join(sentences)
-	# Capitalize the first word
-	temp_sentence = temp_sentence[0].upper() + temp_sentence[1:]
-	# Capitalize all first words in sentences and put space between every sentence.
-	pos = temp_sentence.find(".")
-	while pos != -1:
-		temp_sentence = temp_sentence[:pos + 1] + " " +  temp_sentence[pos + 1].upper() + temp_sentence[pos+2:]
-		if temp_sentence[pos + 1:].find(".") == -1:
-			break
-		pos = temp_sentence[pos + 1:].find(".") + pos + 1
-
-	temp_sentence = temp_sentence[:len(temp_sentence)] + '.'
-
-
-
-	return temp_sentence
 
 def generate_sentence(CAT, TXT_FILE):
 	answer = read_expressions('sentence', CAT, TXT_FILE)

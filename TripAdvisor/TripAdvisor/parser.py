@@ -55,7 +55,8 @@ class Parser(object):
         # determine the question type of the query
         question_type = self.define_question_type(query, keywords)
         print 'question type:',question_type
-
+        
+        tag = -1
         sql = ""
         # descrpitive question
         if question_type == "1":
@@ -105,19 +106,36 @@ class Parser(object):
             sql = "SELECT "
             for keyword in keywords:
                 if keyword[1] == 'phone':
-                    sql += "phone FROM Restaurants_data WHERE "
+                    tag = 0
+                    sql += "phone, location FROM Restaurants_data WHERE "
                     sql = self.sql2(keywords, sql)
-                    sql += " GROUP BY phone"
+                    sql += " GROUP BY phone, location"
+                    if sql == "SELECT phone, location FROM Restaurants_data WHERE  GROUP BY phone, location":
+                        return None, None
                     break
                 elif keyword[1] == 'speciality':
+                    tag = 1
                     sql += "feature FROM Restaurants_data WHERE "
                     sql = self.sql2(keywords, sql)
                     sql += " GROUP BY feature"
+                    if sql == "SELECT feature FROM Restaurants_data WHERE  GROUP BY feature":
+                        return None, None
                     break
             if sql == "SELECT ":
                 return None, None
         else:
             return None, None
+
+        print sql
+        if question_type == "5":
+            for keyword in keywords:
+                if keyword[1] == 'title':
+                    if tag == 0:
+                        return (sql, ["phone", keyword[0]])
+                    elif tag == 1:
+                        return (sql, ["speciality", keyword[0]])
+            return None, None
+
         return_value = (sql, question_type)
         return return_value
 
@@ -173,7 +191,7 @@ class Parser(object):
 
         for s in sentence:
             parameter = self.generate_phrases(s)
-            if type(parameter)==list:
+            if type(parameter) == list:
                 phrase_list = parameter[1]
                 entity = parameter[0]
             else:
