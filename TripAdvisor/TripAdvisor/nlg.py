@@ -45,7 +45,7 @@ def generate_long_sentence(name, address, phone, price, rank, feature, question_
 	return temp_sentence
 
 def generate_price_sentence(price, name, path):
-	if price == '££££':
+	if price == '$$$$':
 		sentence = generate_sentence('expensive', path+'/TripAdvisor/price.txt')
 	elif price != None:
 		sentence = generate_sentence('cheap', path+'/TripAdvisor/price.txt')
@@ -53,7 +53,12 @@ def generate_price_sentence(price, name, path):
 		return "ERROR"
 	sentence = sentence.replace('NAME', name)
 	if sentence.find("PRICE") != -1:
-		sentence = sentence.replace("PRICE", price)
+		if price == '$':
+			sentence = sentence.replace("PRICE", "£1 - £10")
+		elif price == '$$ - $$$':
+			sentence = sentence.replace("PRICE", "£11 - £30")
+		else:
+			sentence = sentence.replace("PRICE", "more than £30")
 	return sentence
 
 def generate_rank_sentence(rank, name, path):
