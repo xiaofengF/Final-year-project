@@ -45,6 +45,7 @@ for url in urls:
 	phones = []
 	postLeft = []
 	postRight = []
+	urls = []
 
 	for link in links:
 		inner_url = 'https://www.tripadvisor.com' + link
@@ -52,7 +53,7 @@ for url in urls:
 		inner_soup = BeautifulSoup(inner_data.text, 'lxml')
 		location = inner_soup.select(' div.headerBL > div.blRow > div.address')
 		phone = inner_soup.select('div.headerBL > div.blRow > div.phone')
-
+		
 		for loc,ph in zip(location,phone):
 			l = loc.get_text()
 			ll = l[l.rfind('o') + 3: -9]
