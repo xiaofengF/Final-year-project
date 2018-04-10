@@ -6,14 +6,18 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
 
   <!-- Compiled and minified JavaScript -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 </head>
 
 <nav class="teal lighten-2">
   <div class="nav-wrapper">
-      <a href="#" class="brand-logo">Trip Information Advisor</a>
+      <a class="brand-logo hide-on-med-and-down">Restaurant Information Advisor</a>
+      <a data-activates="mobile-demo" class="button-collapse">Restaurant Information Advisor</a>
   </div>
 </nav>
+
+
 <style type="text/css">
 @import 'http://fonts.googleapis.com/css?family=Noto+Sans';
 
@@ -128,7 +132,27 @@
 </style>
 <script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
 <script type="text/javascript">
-    var children = 0;
+
+    // disable the use of the return key to submit form
+    document.onkeydown = function(event) {  
+          if (!event) { 
+           // for IE explorer
+              event = window.event; 
+              if (event.keyCode == 13) {  
+                  if (event.srcElement.tagName == "TEXTAREA") { return true; }  
+                  else { return false; }  
+              }  
+          }  
+          else {  
+            // for other explorers
+              if (event.keyCode == 13) {  
+                  if (event.target.tagName == "INPUT") { return false; }  
+                  else { return true; }   
+              }  
+          }  
+    };  
+
+    var children = 0; 
 
     function scroll(){
       var div=$("#list");

@@ -25,9 +25,10 @@ def getData(request):
 	except ValueError:
 		pass
 
-	r = Parser()
-	# get the answer from NLG system
-	(data, question_type) = r.get_data(query)
+	parser = Parser()
+	# get the data from NLP system
+	(data, question_type) = parser.get_data(query)
+
 	answer = ""
 	name = ""
 	if type(question_type) == list:
@@ -63,10 +64,10 @@ def getData(request):
 				restaurants.append(restaurant)
 				restaurant = list(data[i])
 				tag = data[i][2]
-	elif question_type == "3" or question_type == "phone" or question_type == "speciality":
+	else: 
 		for i in xrange(len(data)):
 			restaurants.append(data[i])
-	# 0: id 1: name 2:address 3: phone 4: price 5,6: postcode 7: rank 8: feature
+
 	if question_type == "1":
 		# descriptive question
 		if len(restaurants) > 1:
@@ -76,7 +77,7 @@ def getData(request):
 			rest_name = restaurants[0][1]
 			answer = "There are " + str(len(restaurants)) + " <b>" + rest_name + "</b> in London. Which one do you mean?<br>"
 			for i in xrange(len(restaurants)):
-				answer = answer + str(i + 1) + ". " + rest_name + " in " + restaurants[i][2] + "<br>"
+				answer = answer + str(i + 1) + ". " + rest_name + " on " + restaurants[i][2] + "<br>"
 		else:
 			answer = nlg.generate_long_sentence(restaurants[0][1], restaurants[0][2], restaurants[0][3], restaurants[0][4], restaurants[0][7], restaurants[0][8], 1)
 	elif question_type == "2":
@@ -106,16 +107,22 @@ def getData(request):
 				feature = feature + ", " + restaurants[i][0]
 			print feature
 			answer = nlg.generate_long_sentence(None, None, None, None, None, feature, "speciality")
-	elif question_type == "phone":
+	elif question_type == "phone" or question_type == "price":
 		# phone question
 		if option:
-			return HttpResponse(nlg.generate_long_sentence(None, None, restaurants[option - 1][0], None, None, None, "phone"))
+			if question_type == "phone":
+				return HttpResponse(nlg.generate_long_sentence(None, None, restaurants[option - 1][0], None, None, None, "phone"))
+			else:
+				print "aaaaa:", restaurants[option - 1][0]
+				return HttpResponse(nlg.generate_long_sentence(None, None, None, restaurants[option - 1][0], None, None, "price"))
 		if len(restaurants) > 1:
 			answer = "There are " + str(len(restaurants)) + " <b>" + name + "</b> in London. Which one do you mean?<br>"
 			for i in xrange(len(restaurants)):
-				answer = answer + str(i + 1) + ". " + name + " in " + restaurants[i][1] + "<br>"
+				answer = answer + str(i + 1) + ". " + name + " on " + restaurants[i][1] + "<br>"
 		else:
-			answer = nlg.generate_long_sentence(None, None, restaurants[0][0], None, None, None, "phone")
-
+			if question_type == "phone":
+				answer = nlg.generate_long_sentence(None, None, restaurants[0][0], None, None, None, "phone")
+			else:
+				answer = nlg.generate_long_sentence(None, None, None, restaurants[0][0], None, None, "price")
 	return HttpResponse(answer)
 

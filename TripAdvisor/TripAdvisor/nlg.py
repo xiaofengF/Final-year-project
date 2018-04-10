@@ -9,23 +9,53 @@ def generate_long_sentence(name, address, phone, price, rank, feature, question_
 	if type(question_type) == str:
 		name = "this restaurant"
 		if question_type == "phone":
-			sentences.append(generate_phone_sentence(phone, name, path))
+			sentence = generate_phone_sentence(phone, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
+			else:
+				sentence = "This restaurant doesn't have contact information"
 		elif question_type == "speciality":
-			sentences.append(generate_feature_sentence(feature, name, path))
+			sentence = generate_feature_sentence(feature, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
+			else:
+				sentence = "This restaurant doesn't have feature information"
+			sentences.append(sentence)
+		elif question_type == "price":
+			sentence = generate_price_sentence(price, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
+			else:
+				sentence = "This restaurant doesn't have price information"
+			sentences.append(sentence)
 	else:	
 		if question_type == 1:
 			name = name.title()
 			# rank sentence
-			sentences.append(generate_rank_sentence(rank, name, path))
+			sentence = generate_rank_sentence(rank, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
 			# price sentence
-			sentences.append(generate_price_sentence(price, name, path))
+			sentence = generate_price_sentence(price, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
 			# phone, address and feature
-			sentences.append(generate_phone_sentence(phone, name, path))
-			sentences.append(generate_address_sentence(address, name, path))
-			sentences.append(generate_feature_sentence(feature, name, path))
+			sentence = generate_phone_sentence(phone, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
+
+			sentence = generate_address_sentence(address, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
+
+			sentence = generate_feature_sentence(feature, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
 		elif question_type == 3:
 			name = "this restaurant"
-			sentences.append(generate_address_sentence(address, name, path))
+			sentence = generate_address_sentence(address, name, path)
+			if sentence != "ERROR":
+				sentences.append(sentence)
 		else:
 			return "ERROR"
 
@@ -45,9 +75,10 @@ def generate_long_sentence(name, address, phone, price, rank, feature, question_
 	return temp_sentence
 
 def generate_price_sentence(price, name, path):
+	print "price:",price
 	if price == '$$$$':
 		sentence = generate_sentence('expensive', path+'/TripAdvisor/price.txt')
-	elif price != None:
+	elif price != '':
 		sentence = generate_sentence('cheap', path+'/TripAdvisor/price.txt')
 	else:
 		return "ERROR"
@@ -57,8 +88,10 @@ def generate_price_sentence(price, name, path):
 			sentence = sentence.replace("PRICE", "£1 - £10")
 		elif price == '$$ - $$$':
 			sentence = sentence.replace("PRICE", "£11 - £30")
-		else:
+		elif price == '$$$$':
 			sentence = sentence.replace("PRICE", "more than £30")
+		else:
+			return "ERROR"
 	return sentence
 
 def generate_rank_sentence(rank, name, path):
@@ -76,7 +109,7 @@ def generate_rank_sentence(rank, name, path):
 	return sentence
 
 def generate_phone_sentence(phone, name, path):
-	if phone != None:
+	if phone != '+ Add phone number' or None:
 		# "none": whatever the input
 		sentence = generate_sentence('none', path+'/TripAdvisor/phone.txt')
 	else:

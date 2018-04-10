@@ -36,7 +36,6 @@ class Parser(object):
         results = cursor.fetchall()
         db.close()
         return_value = (results, temp_query[1])
-        print query
         return return_value
 
     def get_sql(self, query):
@@ -121,6 +120,14 @@ class Parser(object):
                     if sql == "SELECT feature FROM Restaurants_data WHERE  GROUP BY feature":
                         return None, None
                     break
+                elif keyword[1] == 'price2':
+                    tag = 2
+                    sql += "price, location FROM Restaurants_data WHERE "
+                    sql = self.sql2(keywords, sql)
+                    sql += " GROUP BY price, location"
+                    if sql == "SELECT price, location FROM Restaurants_data WHERE  GROUP BY price, location":
+                        return None, None
+                    break
             if sql == "SELECT ":
                 return None, None
         else:
@@ -134,6 +141,8 @@ class Parser(object):
                         return (sql, ["phone", keyword[0]])
                     elif tag == 1:
                         return (sql, ["speciality", keyword[0]])
+                    elif tag == 2:
+                        return (sql, ["price", keyword[0]])
             return None, None
 
         return_value = (sql, question_type)
@@ -211,7 +220,7 @@ class Parser(object):
         bad = self.get_synonyms(set(['bad', 'worse','worst']), dictionary)
         feature = self.get_synonyms(set(['speciality', 'feature', 'features']), dictionary)
         phone = self.get_synonyms(set(['phone','telephone','contact','mobile-phone']), dictionary)
-
+        price = self.get_synonyms(set(['price']), dictionary)
         # divide keyword into different groups
         for keyword in keywords:
         # price
@@ -238,6 +247,8 @@ class Parser(object):
         # title
             elif keyword == 'entity':
                 keyword = (entity, 'title')
+            elif keyword in price:
+                keyword = (keyword, 'price2')
             else:
                 keyword = (keyword, 'unknown')
             tup.append(keyword)
