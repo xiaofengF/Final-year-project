@@ -14,20 +14,22 @@ def generate_long_sentence(name, address, phone, price, rank, feature, question_
 				sentences.append(sentence)
 			else:
 				sentence = "This restaurant doesn't have contact information"
+				sentences.append(sentence)
+
 		elif question_type == "speciality":
 			sentence = generate_feature_sentence(feature, name, path)
 			if sentence != "ERROR":
 				sentences.append(sentence)
 			else:
 				sentence = "This restaurant doesn't have feature information"
-			sentences.append(sentence)
+				sentences.append(sentence)
 		elif question_type == "price":
 			sentence = generate_price_sentence(price, name, path)
 			if sentence != "ERROR":
 				sentences.append(sentence)
 			else:
 				sentence = "This restaurant doesn't have price information"
-			sentences.append(sentence)
+				sentences.append(sentence)
 	else:	
 		if question_type == 1:
 			name = name.title()

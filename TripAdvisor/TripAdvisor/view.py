@@ -113,7 +113,6 @@ def getData(request):
 			if question_type == "phone":
 				return HttpResponse(nlg.generate_long_sentence(None, None, restaurants[option - 1][0], None, None, None, "phone"))
 			else:
-				print "aaaaa:", restaurants[option - 1][0]
 				return HttpResponse(nlg.generate_long_sentence(None, None, None, restaurants[option - 1][0], None, None, "price"))
 		if len(restaurants) > 1:
 			answer = "There are " + str(len(restaurants)) + " <b>" + name + "</b> in London. Which one do you mean?<br>"
