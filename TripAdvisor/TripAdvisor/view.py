@@ -5,6 +5,7 @@ from parser import Parser
 from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_exempt
 import nlg
+import random
 
 @csrf_exempt
 
@@ -35,7 +36,7 @@ def getData(request):
 		name = question_type[1]
 		question_type = question_type[0]
 
-	if data == None or question_type == None:
+	if data == None  or question_type == None:
 		return HttpResponse("Sorry I don't know what you mean.")
 
 	print data
@@ -46,12 +47,18 @@ def getData(request):
 			answer = "Yes"
 		else:
 			answer = "No"
+	else:
+		if not len(data):
+			return HttpResponse("Sorry I don't know what you mean.")
 
 	# change format
 	restaurants = []
 	if question_type == "1" or question_type == "2":
 		tag = data[0][2]
 		restaurant = list(data[0])
+		if len(data) == 1:
+			restaurants.append(restaurant)
+
 		for i in xrange(1, len(data)):
 			# add the feature to the restaurant
 			if data[i][2] == tag:
@@ -74,6 +81,9 @@ def getData(request):
 			if option:
 				return HttpResponse(nlg.generate_long_sentence(restaurants[option - 1][1], restaurants[option - 1][2], restaurants[option - 1][3], restaurants[option - 1][4], restaurants[option - 1][7], restaurants[option - 1][8], 1))
 			
+			if restaurants[0][1] != restaurants[1][1]:
+				number = random.randint(0, len(restaurants))
+				return HttpResponse(nlg.generate_long_sentence(restaurants[number][1], restaurants[number][2], restaurants[number][3], restaurants[number][4], restaurants[number][7], restaurants[number][8], 1))
 			rest_name = restaurants[0][1]
 			answer = "There are " + str(len(restaurants)) + " <b>" + rest_name + "</b> in London. Which one do you mean?<br>"
 			for i in xrange(len(restaurants)):
@@ -90,7 +100,7 @@ def getData(request):
 			restaurants_number = len(restaurants)
 
 		answer = "There are results that match your question:<br>"
-		for i in xrange(20):
+		for i in xrange(restaurants_number):
 			answer = answer + str(i + 1) + ". " + restaurants[i][1] + "<br>"
 	elif question_type == "3":
 		# location question
